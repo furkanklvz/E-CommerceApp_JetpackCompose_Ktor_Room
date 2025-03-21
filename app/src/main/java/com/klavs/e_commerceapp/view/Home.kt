@@ -138,8 +138,6 @@ private fun HomeContent(
 
                     }
                 }
-
-                Resource.Idle -> {}
                 Resource.Loading -> {
                     LinearProgressIndicator(
                         modifier = Modifier
@@ -164,8 +162,8 @@ private fun HomeContent(
                             )
                         }
                     }
-
                 }
+                else -> {}
             }
         }
     }

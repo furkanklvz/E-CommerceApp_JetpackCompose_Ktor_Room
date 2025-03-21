@@ -1,4 +1,4 @@
-package com.klavs.e_commerceapp.view
+package com.klavs.e_commerceapp.view.cart
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -13,11 +13,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ShoppingBag
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material.icons.rounded.RemoveShoppingCart
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
@@ -112,9 +115,11 @@ private fun ShoppingCartContent(
                             contentDescription = "error",
                             tint = MaterialTheme.colorScheme.error
                         )
-                        Text("Your cart could not be loaded, please try again later.\n" +
-                                "Error Description: ${cartResource.throwable.localizedMessage}",
-                            textAlign = TextAlign.Center)
+                        Text(
+                            "Your cart could not be loaded, please try again later.\n" +
+                                    "Error Description: ${cartResource.throwable.localizedMessage}",
+                            textAlign = TextAlign.Center
+                        )
 
                     }
                 }
@@ -130,18 +135,63 @@ private fun ShoppingCartContent(
 
                 is Resource.Success -> {
                     val cartItems = cartResource.data.cartItems
-                    LazyColumn(
+                    Column(
                         modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(5.dp)
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        items(cartItems) { cartItem ->
-                            CartItemRow(
-                                cartItem = cartItem,
-                                increaseQuantity = { increaseQuantity(cartItem.productId) },
-                                decreaseQuantity = { decreaseQuantity(cartItem.productId, it) }
-                            )
-                            if (cartItems.last() != cartItem) HorizontalDivider()
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            items(cartItems) { cartItem ->
+                                CartItemRow(
+                                    cartItem = cartItem,
+                                    increaseQuantity = { increaseQuantity(cartItem.productId) },
+                                    decreaseQuantity = { decreaseQuantity(cartItem.productId, it) }
+                                )
+                                if (cartItems.last() != cartItem) HorizontalDivider()
+                            }
                         }
+                        if (cartItems.isNotEmpty()) {
+                            Button(
+                                modifier = Modifier.padding(10.dp),
+                                onClick = {}) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                                ) {
+                                    Text("Order Now")
+                                    Icon(
+                                        imageVector = Icons.Outlined.ShoppingBag,
+                                        contentDescription = "get order"
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                }
+
+                Resource.Unauthorized -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .align(Alignment.TopCenter)
+                            .padding(top = 30.dp),
+                        verticalArrangement = Arrangement.spacedBy(5.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Person,
+                            contentDescription = "log in",
+                        )
+                        Text(
+                            "Please log in.",
+                            textAlign = TextAlign.Center
+                        )
+
                     }
                 }
             }
@@ -274,6 +324,42 @@ private fun CartPreview() {
                 productPrice = 299.90,
                 quantity = 1,
                 productName = "product 3"
+            ),
+            CartItem(
+                productId = 1,
+                productPrice = 2500.0,
+                quantity = 2,
+                productName = "product 1"
+            ),
+            CartItem(
+                productId = 12,
+                productPrice = 2100.0,
+                quantity = 1,
+                productName = "product 2"
+            ),
+            CartItem(
+                productId = 3,
+                productPrice = 299.90,
+                quantity = 1,
+                productName = "product 3"
+            ),
+            CartItem(
+                productId = 1,
+                productPrice = 2500.0,
+                quantity = 2,
+                productName = "product 1"
+            ),
+            CartItem(
+                productId = 12,
+                productPrice = 2100.0,
+                quantity = 1,
+                productName = "product 2"
+            ),
+            CartItem(
+                productId = 3,
+                productPrice = 299.90,
+                quantity = 1,
+                productName = "product 3"
             )
         ),
         customerId = "1"
@@ -281,7 +367,7 @@ private fun CartPreview() {
 
     ECommerceAppTheme {
         ShoppingCartContent(
-            cartResource = Resource.Error(Exception("Hata")),
+            cartResource = Resource.Success(cart),
             increaseQuantity = {},
             decreaseQuantity = { _, _ -> }
         )

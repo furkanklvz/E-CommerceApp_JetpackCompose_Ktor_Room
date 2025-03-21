@@ -114,10 +114,6 @@ private fun ProductDetailsContent(
                         productResource.throwable.printStackTrace()
                     }
                 }
-
-                Resource.Idle -> {
-                    Text("idle")
-                }
                 Resource.Loading -> {
                     LinearProgressIndicator(
                         modifier = Modifier
@@ -167,6 +163,7 @@ private fun ProductDetailsContent(
                             style = MaterialTheme.typography.titleLarge)
                     }
                 }
+                else ->{}
             }
         }
 

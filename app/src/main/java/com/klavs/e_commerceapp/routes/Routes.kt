@@ -25,3 +25,6 @@ data object LogIn
 
 @Serializable
 data object Register
+
+@Serializable
+data object Orders

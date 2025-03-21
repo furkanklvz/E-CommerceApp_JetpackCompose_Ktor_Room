@@ -8,7 +8,6 @@ import com.klavs.e_commerceapp.data.repository.cart.CartRepository
 import com.klavs.e_commerceapp.data.room.TokenDao
 import com.klavs.e_commerceapp.util.Resource
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -55,7 +54,11 @@ class GlobalViewModel(
     private fun getCart() {
         viewModelScope.launch(Dispatchers.Main) {
             _token.value?.let {
-                _cart.value = cartRepo.getCart(it.value)
+                _cart.value = cartRepo.getCart(it.value).also { resource->
+                    if (resource.isUnauthorized()){
+                        logout()
+                    }
+                }
             }
         }
     }

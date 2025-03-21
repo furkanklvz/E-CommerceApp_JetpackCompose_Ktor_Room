@@ -21,9 +21,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
-import androidx.navigation.NavOptions
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -31,6 +31,7 @@ import androidx.navigation.navigation
 import androidx.navigation.toRoute
 import com.klavs.e_commerceapp.components.BottomBar
 import com.klavs.e_commerceapp.routes.LogIn
+import com.klavs.e_commerceapp.routes.Orders
 import com.klavs.e_commerceapp.routes.ProductDetails
 import com.klavs.e_commerceapp.routes.Register
 import com.klavs.e_commerceapp.routes.ShoppingCartTop
@@ -39,8 +40,9 @@ import com.klavs.e_commerceapp.routes._Home
 import com.klavs.e_commerceapp.routes._Profile
 import com.klavs.e_commerceapp.routes._Search
 import com.klavs.e_commerceapp.ui.theme.ECommerceAppTheme
-import com.klavs.e_commerceapp.view.ShoppingCart
+import com.klavs.e_commerceapp.view.cart.ShoppingCart
 import com.klavs.e_commerceapp.view.Home
+import com.klavs.e_commerceapp.view.Orders
 import com.klavs.e_commerceapp.view.ProductDetails
 import com.klavs.e_commerceapp.view.Profile
 import com.klavs.e_commerceapp.view.Search
@@ -49,6 +51,7 @@ import com.klavs.e_commerceapp.view.login.Register
 import com.klavs.e_commerceapp.viewmodel.CartViewModel
 import com.klavs.e_commerceapp.viewmodel.GlobalViewModel
 import com.klavs.e_commerceapp.viewmodel.HomeViewModel
+import com.klavs.e_commerceapp.viewmodel.OrderViewModel
 import com.klavs.e_commerceapp.viewmodel.UserViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -68,6 +71,7 @@ class MainActivity : ComponentActivity() {
 fun Navigation(globalViewModel: GlobalViewModel = koinViewModel()) {
     val navController = rememberNavController()
     var bottomBarIsVisible by remember { mutableStateOf(true) }
+    val token by globalViewModel.token.collectAsStateWithLifecycle()
     Scaffold(bottomBar = {
         AnimatedVisibility(
             bottomBarIsVisible,
@@ -108,7 +112,6 @@ fun Navigation(globalViewModel: GlobalViewModel = koinViewModel()) {
                     ShoppingCart(cartViewModel = cartViewModel, globalViewModel = globalViewModel)
                 }
             }
-
             composable<_Profile> {
                 LaunchedEffect(Unit) { bottomBarIsVisible = true }
                 Profile(
@@ -116,6 +119,18 @@ fun Navigation(globalViewModel: GlobalViewModel = koinViewModel()) {
                     globalViewModel = globalViewModel
                 )
             }
+            composable<Orders> { backStackEntry ->
+                LaunchedEffect(Unit) { bottomBarIsVisible = false }
+                val viewModel = backStackEntry.sharedViewModel<OrderViewModel>(navController)
+                Orders(
+                    navController = navController,
+                    orderViewModel = viewModel,
+                    token = token?.value
+                )
+            }
+
+
+
             composable<ProductDetails> { backStackEntry ->
                 LaunchedEffect(Unit) { bottomBarIsVisible = false }
                 val productDetails = backStackEntry.toRoute<ProductDetails>()
@@ -129,13 +144,15 @@ fun Navigation(globalViewModel: GlobalViewModel = koinViewModel()) {
                     navController = navController
                 )
             }
-            composable<Register> {backStackEntry->
+            composable<Register> { backStackEntry ->
                 val viewModel = backStackEntry.sharedViewModel<UserViewModel>(navController)
                 Register(
                     viewModel = viewModel,
                     navController = navController
                 )
             }
+
+
         }
     }
 }

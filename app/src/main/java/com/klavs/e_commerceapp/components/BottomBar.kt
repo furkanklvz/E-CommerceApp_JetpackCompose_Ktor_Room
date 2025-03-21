@@ -84,8 +84,11 @@ fun BottomBar(navController: NavHostController, globalViewModel: GlobalViewModel
                     if (cartResource is Resource.Success && item.route == _ShoppingCart) {
                         BadgedBox(
                             badge = {
-                                Badge {
-                                    Text((cartResource as Resource.Success<Cart>).data.cartItems.size.toString())
+                                val count = (cartResource as Resource.Success<Cart>).data.cartItems.size
+                                if (count != 0) {
+                                    Badge {
+                                        Text(count.toString())
+                                    }
                                 }
                             }) {
                             Icon(
