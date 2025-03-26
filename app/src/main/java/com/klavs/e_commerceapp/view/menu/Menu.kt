@@ -1,4 +1,4 @@
-package com.klavs.e_commerceapp.view
+package com.klavs.e_commerceapp.view.menu
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.rounded.Login
 import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.automirrored.rounded.NavigateNext
 import androidx.compose.material.icons.outlined.ShoppingBag
+import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -24,6 +25,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
+import com.klavs.e_commerceapp.routes.Account
 import com.klavs.e_commerceapp.routes.LogIn
 import com.klavs.e_commerceapp.routes.Orders
 import com.klavs.e_commerceapp.routes._Home
@@ -31,20 +34,26 @@ import com.klavs.e_commerceapp.ui.theme.ECommerceAppTheme
 import com.klavs.e_commerceapp.viewmodel.GlobalViewModel
 import kotlinx.coroutines.launch
 
-sealed class ProfileMenuItem(val title: String, val icon: ImageVector, val onClick: () -> Unit) {
-    data class Orders(val onClicked: () -> Unit) : ProfileMenuItem(
+sealed class MenuItem(val title: String, val icon: ImageVector, val onClick: () -> Unit) {
+    data class Orders(val onClicked: () -> Unit) : MenuItem(
         title = "Orders",
         icon = Icons.Outlined.ShoppingBag,
         onClick = onClicked
     )
 
-    data class LogIn(val onClicked: () -> Unit) : ProfileMenuItem(
+    data class Account(val onClicked: () -> Unit) : MenuItem(
+        title = "Account",
+        icon = Icons.Rounded.AccountCircle,
+        onClick = onClicked
+    )
+
+    data class LogIn(val onClicked: () -> Unit) : MenuItem(
         title = "Log In",
         icon = Icons.AutoMirrored.Rounded.Login,
         onClick = onClicked
     )
 
-    data class LogOut(val onClicked: () -> Unit) : ProfileMenuItem(
+    data class LogOut(val onClicked: () -> Unit) : MenuItem(
         title = "Log Out",
         icon = Icons.AutoMirrored.Rounded.Logout,
         onClick = onClicked
@@ -52,11 +61,10 @@ sealed class ProfileMenuItem(val title: String, val icon: ImageVector, val onCli
 }
 
 @Composable
-fun Profile(navController: NavHostController, globalViewModel: GlobalViewModel) {
-    val token by globalViewModel.token.collectAsStateWithLifecycle()
+fun Menu(navController: NavHostController, globalViewModel: GlobalViewModel) {
+    val token by globalViewModel.account.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-    ProfileContent(
-        navigate = { navController.navigate(it) },
+    MenuContent(
         userSignedIn = token != null,
         onLogOut = {
             scope.launch {
@@ -70,32 +78,40 @@ fun Profile(navController: NavHostController, globalViewModel: GlobalViewModel) 
                         }
                         restoreState = false
                     }
-                }catch (e: Exception){
+                } catch (e: Exception) {
                     e.printStackTrace()
                 }
             }
-        }
+        },
+        navController = navController
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ProfileContent(
-    navigate: (Any) -> Unit,
+private fun MenuContent(
+    navController: NavHostController,
     userSignedIn: Boolean,
     onLogOut: () -> Unit
 ) {
-    val profileMenuItems = listOf(
-        ProfileMenuItem.Orders(onClicked = {navigate(Orders)}),
-        if (userSignedIn) ProfileMenuItem.LogOut(onClicked = onLogOut)
-        else ProfileMenuItem.LogIn(onClicked = { navigate(LogIn) })
-    )
+    val menuItems = if (userSignedIn) {
+        listOf(
+            MenuItem.Account(onClicked = { navController.navigate(Account) }),
+            MenuItem.Orders(onClicked = { navController.navigate(Orders) }),
+            MenuItem.LogOut(onClicked = onLogOut)
+        )
+    }else {
+        listOf(
+            MenuItem.LogIn(onClicked = { navController.navigate(LogIn) })
+        )
+    }
+
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "Profile")
+                    Text(text = "Menu")
                 }
             )
         }
@@ -105,7 +121,7 @@ private fun ProfileContent(
                 .fillMaxSize()
                 .padding(top = innerPadding.calculateTopPadding())
         ) {
-            items(profileMenuItems) { menuItem ->
+            items(menuItems) { menuItem ->
                 MenuRow(title = menuItem.title, icon = menuItem.icon, onClick = menuItem.onClick)
             }
         }
@@ -135,10 +151,10 @@ private fun MenuRow(title: String, icon: ImageVector, onClick: () -> Unit) {
 @Composable
 private fun ProfilePreview() {
     ECommerceAppTheme {
-        ProfileContent(
-            navigate = {},
+        MenuContent(
             userSignedIn = false,
-            onLogOut = {}
+            onLogOut = {},
+            navController = rememberNavController()
         )
     }
 }

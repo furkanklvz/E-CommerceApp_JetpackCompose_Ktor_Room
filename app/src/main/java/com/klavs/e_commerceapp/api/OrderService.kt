@@ -6,6 +6,8 @@ import io.ktor.client.plugins.timeout
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.headers
+import io.ktor.client.request.parameter
+import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.URLProtocol
@@ -13,13 +15,15 @@ import io.ktor.http.path
 
 class OrderService(private val client: HttpClient) {
     private val baseUrl = "10.0.2.2"
-    suspend fun getOrders(token: String): HttpResponse {
+    suspend fun getOrders(token: String, firstItemIndex: Int, pageSize: Int): HttpResponse {
         val response = client.get {
             url {
                 protocol = URLProtocol.HTTP
                 host = baseUrl
                 port = 5077
                 path("api", "order")
+                parameter("pageSize", pageSize)
+                parameter("firstItemIndex", firstItemIndex)
             }
             header("Authorization", "Bearer $token")
             timeout {
@@ -45,7 +49,7 @@ class OrderService(private val client: HttpClient) {
         return response
     }
     suspend fun createOrder(request: CreateOrderRequest, token: String): HttpResponse {
-        val response = client.get {
+        val response = client.post {
             url {
                 protocol = URLProtocol.HTTP
                 host = baseUrl

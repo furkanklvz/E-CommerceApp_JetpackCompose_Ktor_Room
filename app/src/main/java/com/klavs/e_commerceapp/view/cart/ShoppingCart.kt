@@ -1,6 +1,7 @@
 package com.klavs.e_commerceapp.view.cart
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -47,6 +48,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import coil3.compose.SubcomposeAsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -54,17 +57,19 @@ import com.klavs.e_commerceapp.data.model.entity.Cart
 import com.klavs.e_commerceapp.data.model.entity.CartItem
 import com.klavs.e_commerceapp.extensions.format
 import com.klavs.e_commerceapp.helper.fixImageUrl
+import com.klavs.e_commerceapp.routes.CreateOrder
+import com.klavs.e_commerceapp.routes.ProductDetails
 import com.klavs.e_commerceapp.ui.theme.ECommerceAppTheme
 import com.klavs.e_commerceapp.util.Resource
-import com.klavs.e_commerceapp.viewmodel.CartViewModel
 import com.klavs.e_commerceapp.viewmodel.GlobalViewModel
+import kotlinx.serialization.json.Json
 
 @Composable
-fun ShoppingCart(cartViewModel: CartViewModel, globalViewModel: GlobalViewModel) {
+fun ShoppingCart(globalViewModel: GlobalViewModel, navController: NavHostController) {
     val cartResource by globalViewModel.cart.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) {
         if (!cartResource.isSuccess()) {
-            globalViewModel.listenToToken()
+            globalViewModel.listenToAccount()
         }
     }
     ShoppingCartContent(
@@ -72,7 +77,8 @@ fun ShoppingCart(cartViewModel: CartViewModel, globalViewModel: GlobalViewModel)
         increaseQuantity = { productId -> globalViewModel.addToCart(productId = productId) },
         decreaseQuantity = { productId, quantity ->
             globalViewModel.deleteCartItem(productId = productId, quantity = quantity)
-        }
+        },
+        navController = navController
     )
 }
 
@@ -81,7 +87,8 @@ fun ShoppingCart(cartViewModel: CartViewModel, globalViewModel: GlobalViewModel)
 private fun ShoppingCartContent(
     cartResource: Resource<Cart>,
     increaseQuantity: (productId: Int) -> Unit,
-    decreaseQuantity: (productId: Int, quantity: Int) -> Unit
+    decreaseQuantity: (productId: Int, quantity: Int) -> Unit,
+    navController: NavHostController
 ) {
     Scaffold(
         topBar = {
@@ -149,7 +156,8 @@ private fun ShoppingCartContent(
                                 CartItemRow(
                                     cartItem = cartItem,
                                     increaseQuantity = { increaseQuantity(cartItem.productId) },
-                                    decreaseQuantity = { decreaseQuantity(cartItem.productId, it) }
+                                    decreaseQuantity = { decreaseQuantity(cartItem.productId, it) },
+                                    onClick = {navController.navigate(ProductDetails(cartItem.productId))}
                                 )
                                 if (cartItems.last() != cartItem) HorizontalDivider()
                             }
@@ -157,7 +165,7 @@ private fun ShoppingCartContent(
                         if (cartItems.isNotEmpty()) {
                             Button(
                                 modifier = Modifier.padding(10.dp),
-                                onClick = {}) {
+                                onClick = {navController.navigate(CreateOrder(cart = Json.encodeToString(cartResource.data)))}) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(5.dp)
@@ -165,7 +173,7 @@ private fun ShoppingCartContent(
                                     Text("Order Now")
                                     Icon(
                                         imageVector = Icons.Outlined.ShoppingBag,
-                                        contentDescription = "get order"
+                                        contentDescription = "order"
                                     )
                                 }
                             }
@@ -204,10 +212,12 @@ private fun ShoppingCartContent(
 private fun CartItemRow(
     cartItem: CartItem,
     increaseQuantity: () -> Unit,
+    onClick: () -> Unit,
     decreaseQuantity: (quantity: Int) -> Unit
 ) {
     val context = LocalContext.current
     ListItem(
+        modifier = Modifier.clickable { onClick() },
         headlineContent = {
             Text(cartItem.productName)
         },
@@ -369,7 +379,8 @@ private fun CartPreview() {
         ShoppingCartContent(
             cartResource = Resource.Success(cart),
             increaseQuantity = {},
-            decreaseQuantity = { _, _ -> }
+            decreaseQuantity = { _, _ -> },
+            navController = rememberNavController()
         )
     }
 }

@@ -35,7 +35,7 @@ import org.koin.dsl.module
 
 val appModule = module {
     single { ECommerceDatabase.getInstance(get()) }
-    single { get<ECommerceDatabase>().tokenDao() }
+    single { get<ECommerceDatabase>().accountDao() }
 
     single { KtorClient.getClient() }
 

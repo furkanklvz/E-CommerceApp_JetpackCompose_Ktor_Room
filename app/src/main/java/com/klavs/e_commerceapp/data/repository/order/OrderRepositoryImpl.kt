@@ -6,8 +6,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class OrderRepositoryImpl(private val ds: OrderDatasource) : OrderRepository {
-    override suspend fun getOrders(token: String)
-    = withContext(Dispatchers.IO) { ds.getOrders(token) }
+    override suspend fun getOrders(token: String, firstItemIndex: Int, pageSize: Int)
+    = withContext(Dispatchers.IO) { ds.getOrders(token, firstItemIndex, pageSize) }
 
     override suspend fun getOrder(orderId: Int, token: String)
     = withContext(Dispatchers.IO) { ds.getOrder(orderId, token) }

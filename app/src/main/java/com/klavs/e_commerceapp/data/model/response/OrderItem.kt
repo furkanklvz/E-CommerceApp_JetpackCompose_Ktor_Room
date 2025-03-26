@@ -9,6 +9,6 @@ data class OrderItem(
     val price: Double,
     val productId: Int,
     val productImageUrl: String? = null,
-    val productName: String? = null,
+    val productName: String = "",
     val quantity: Int
 )

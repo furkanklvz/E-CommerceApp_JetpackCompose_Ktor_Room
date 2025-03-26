@@ -12,7 +12,7 @@ data object _Search
 data object _ShoppingCart
 
 @Serializable
-data object _Profile
+data object _Menu
 
 @Serializable
 data class ProductDetails(val id: Int)
@@ -28,3 +28,9 @@ data object Register
 
 @Serializable
 data object Orders
+
+@Serializable
+data class CreateOrder (val cart: String)
+
+@Serializable
+data object Account

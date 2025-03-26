@@ -1,7 +1,9 @@
-package com.klavs.e_commerceapp.view
+package com.klavs.e_commerceapp.view.menu.orders
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,24 +22,36 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.NavigateNext
 import androidx.compose.material.icons.rounded.AccessTime
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.DeliveryDining
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.PlaylistRemove
 import androidx.compose.material.icons.rounded.Verified
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +59,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -58,11 +73,16 @@ import coil3.request.crossfade
 import com.klavs.e_commerceapp.data.model.response.OrderItem
 import com.klavs.e_commerceapp.data.model.response.OrderResponse
 import com.klavs.e_commerceapp.data.model.response.OrderStatus
+import com.klavs.e_commerceapp.data.model.response.PagedData
 import com.klavs.e_commerceapp.extensions.format
 import com.klavs.e_commerceapp.helper.fixImageUrl
+import com.klavs.e_commerceapp.routes.ProductDetails
+import com.klavs.e_commerceapp.routes._Home
 import com.klavs.e_commerceapp.ui.theme.ECommerceAppTheme
 import com.klavs.e_commerceapp.util.Resource
 import com.klavs.e_commerceapp.viewmodel.OrderViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDateTime
 
 @Composable
@@ -74,21 +94,47 @@ fun Orders(
     val ordersResource by orderViewModel.ordersResource.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        token?.let { orderViewModel.getOrders(it) }
+        token?.let { orderViewModel.getOrders(token, 0, 1) }
     }
 
     OrdersContent(
         ordersResource = ordersResource,
-        navController = navController
+        navController = navController,
+        getOrders = { firstItemIndex, pageSize ->
+            token?.let {
+                orderViewModel.getOrders(
+                    token = token,
+                    firstItemIndex = firstItemIndex,
+                    pageSize = pageSize
+                )
+            }
+        }
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OrdersContent(
-    ordersResource: Resource<List<OrderResponse>>,
+    ordersResource: Resource<PagedData<OrderResponse>>,
+    getOrders: (firstItemIndex: Int, pageSize: Int) -> Unit,
     navController: NavHostController
 ) {
+    val orders = remember { mutableStateListOf<OrderResponse>() }
+    val scope = rememberCoroutineScope()
+    var orderInBottomSheet by remember { mutableStateOf<OrderResponse?>(null) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var updatingListJob: Job? = null
+
+    LaunchedEffect(ordersResource) {
+        if (ordersResource is Resource.Success) {
+            updatingListJob = launch {
+                orders.addAll(ordersResource.data.data)
+            }
+        } else if (ordersResource is Resource.Error) {
+            Log.e("orders", ordersResource.throwable.message.toString())
+        }
+    }
+
     Scaffold(topBar = {
         TopAppBar(
             navigationIcon = {
@@ -104,74 +150,102 @@ private fun OrdersContent(
             }
         )
     }) { innerPadding ->
+        orderInBottomSheet?.let {
+            ModalBottomSheet(
+                onDismissRequest = {
+                    scope.launch {
+                        sheetState.hide()
+                    }.invokeOnCompletion {
+                        if (!sheetState.isVisible) {
+                            orderInBottomSheet = null
+                        }
+                    }
+                },
+                sheetState = sheetState
+            ) {
+                OrderDetails(
+                    order = it,
+                    onProductClick = { productId ->
+                        navController.navigate(ProductDetails(productId))
+                    }
+                )
+            }
+        }
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = innerPadding.calculateTopPadding())
         ) {
-            when (ordersResource) {
-                is Resource.Error -> {
-                    LaunchedEffect(Unit) {
-                        ordersResource.throwable.printStackTrace()
-                    }
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth(0.8f)
-                            .align(Alignment.TopCenter)
-                            .padding(top = 30.dp),
-                        verticalArrangement = Arrangement.spacedBy(5.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.ErrorOutline,
-                            contentDescription = "error",
-                            tint = MaterialTheme.colorScheme.error
-                        )
-                        Text(
-                            "Orders could not be loaded, please try again later.\n" +
-                                    "Error Description: ${ordersResource.throwable.message}",
-                            textAlign = TextAlign.Center
-                        )
-
-                    }
-                }
-
-                Resource.Idle -> {}
-                Resource.Loading -> {
+            if (orders.isEmpty()) {
+                if (ordersResource.isLoading() || updatingListJob?.isCompleted != true) {
                     LinearProgressIndicator(
                         modifier = Modifier
                             .fillMaxWidth()
                             .align(Alignment.TopCenter)
                     )
-                }
-
-                is Resource.Success -> {
-                    val orders = ordersResource.data
-                    LazyColumn(Modifier.fillMaxSize()) {
-                        items(orders) { order ->
-                            OrderRow(order)
+                } else if (ordersResource.isSuccess()) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(5.dp),
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .padding(top = 20.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.PlaylistRemove,
+                            contentDescription = "no orders"
+                        )
+                        Text(
+                            "You have not placed any orders yet.",
+                            textAlign = TextAlign.Center
+                        )
+                        FilledTonalButton(onClick = {
+                            navController.navigate(_Home) {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    inclusive = true
+                                    saveState = false
+                                }
+                                restoreState = false
+                            }
+                        }) {
+                            Text("Start Shopping Now")
                         }
                     }
                 }
-
-                Resource.Unauthorized -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth(0.8f)
-                            .align(Alignment.TopCenter)
-                            .padding(top = 30.dp),
-                        verticalArrangement = Arrangement.spacedBy(5.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+            } else {
+                LazyColumn(
+                    Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    items(orders) { order ->
+                        OrderRow(
+                            order = order,
+                            onClick = { orderInBottomSheet = order }
+                        )
+                    }
+                    if (orders.isNotEmpty() && ordersResource.isLoading()) {
+                        item {
+                            CircularProgressIndicator(modifier = Modifier.padding(5.dp))
+                        }
+                    } else if (ordersResource is Resource.Success
+                        && ordersResource.data.totalRecords > orders.size
                     ) {
-                        Icon(
-                            imageVector = Icons.Rounded.ErrorOutline,
-                            contentDescription = "log in",
-                        )
-                        Text(
-                            "Please log in.",
-                            textAlign = TextAlign.Center
-                        )
-
+                        item {
+                            OutlinedIconButton(
+                                onClick = {
+                                    getOrders(
+                                        ordersResource.data.lastItemIndex + 1,
+                                        2
+                                    )
+                                },
+                                modifier = Modifier.padding(5.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Add,
+                                    contentDescription = "get more"
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -181,7 +255,7 @@ private fun OrdersContent(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun OrderRow(order: OrderResponse) {
+private fun OrderRow(order: OrderResponse, onClick: () -> Unit) {
     val context = LocalContext.current
     ListItem(
         modifier = Modifier
@@ -190,11 +264,12 @@ private fun OrderRow(order: OrderResponse) {
                 1.dp,
                 MaterialTheme.colorScheme.onBackground,
                 RoundedCornerShape(12.dp)
-            ),
+            )
+            .clickable { onClick() },
         headlineContent = {
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
-                userScrollEnabled = false
+                userScrollEnabled = true
             ) {
                 items(order.orderItems) { orderItem ->
                     Box(
@@ -287,7 +362,11 @@ private fun OrderRow(order: OrderResponse) {
         trailingContent = {
             Row {
                 Column {
-                    Text(order.orderDate.date.toString())
+                    Text(buildAnnotatedString {
+                        append(order.orderDate.date.toString())
+                        append(", ")
+                        append(order.orderDate.time.toString())
+                    })
                     Text(
                         "${(order.subTotal + order.deliveryFee).format(2)} ₺",
                         color = MaterialTheme.colorScheme.tertiary,
@@ -314,10 +393,9 @@ private fun OrdersPreview() {
             city = "Mose",
             customerId = "Kiesha",
             deliveryFee = 23.883,
-            fullName = "Stephaie",
-            orderDate = LocalDateTime.parse(
-                input = "2024-5-12"
-            ),
+            name = "furkan",
+            surname = "kılavuz",
+            orderDate = LocalDateTime(2025, 8, 12, 20, 30),
             orderId = 2850,
             orderItems = listOf(
                 OrderItem(
@@ -348,10 +426,7 @@ private fun OrdersPreview() {
             city = "Ines",
             customerId = "Tarrance",
             deliveryFee = 75.152,
-            fullName = "Colter",
-            orderDate = LocalDateTime.parse(
-                input = "2024-5-12"
-            ),
+            orderDate = LocalDateTime(2025, 6, 12, 20, 30),
             orderId = 6328,
             orderItems = listOf(
                 OrderItem(
@@ -373,10 +448,7 @@ private fun OrdersPreview() {
             city = "Frederica",
             customerId = "Riley",
             deliveryFee = 62.704,
-            fullName = "Shamia",
-            orderDate = LocalDateTime.parse(
-                input = "2024-5-12"
-            ),
+            orderDate = LocalDateTime(2025, 5, 12, 20, 30),
             orderId = 2821,
             orderItems = listOf(
                 OrderItem(
@@ -407,10 +479,7 @@ private fun OrdersPreview() {
             city = "Kimberlee",
             customerId = "Aleesha",
             deliveryFee = 19.118,
-            fullName = "Khalilah",
-            orderDate = LocalDateTime.parse(
-                input = "2024-5-12"
-            ),
+            orderDate = LocalDateTime(2025, 4, 12, 20, 30),
             orderId = 9869,
             orderItems = listOf(
                 OrderItem(
@@ -477,10 +546,7 @@ private fun OrdersPreview() {
             city = "Shant",
             customerId = "Chace",
             deliveryFee = 51.811,
-            fullName = "Paulina",
-            orderDate = LocalDateTime.parse(
-                input = "2024-5-12"
-            ),
+            orderDate = LocalDateTime(2025, 3, 12, 20, 30),
             orderId = 5401,
             orderItems = listOf(
                 OrderItem(
@@ -508,10 +574,19 @@ private fun OrdersPreview() {
         ),
     )
 
+    val pagedData = PagedData<OrderResponse>(
+        pageSize = 3,
+        totalRecords = 25,
+        totalPages = 9,
+        data = orders,
+        lastItemIndex = 1
+    )
+
     ECommerceAppTheme {
         OrdersContent(
-            ordersResource = Resource.Success(orders),
-            navController = rememberNavController()
+            ordersResource = Resource.Success(pagedData),
+            navController = rememberNavController(),
+            getOrders = { _, _ -> }
         )
     }
 }

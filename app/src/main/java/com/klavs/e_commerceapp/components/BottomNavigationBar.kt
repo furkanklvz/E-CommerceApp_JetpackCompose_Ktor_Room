@@ -9,33 +9,31 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationItemIconPosition
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ShortNavigationBar
+import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.klavs.e_commerceapp.data.model.entity.Cart
 import com.klavs.e_commerceapp.routes._ShoppingCart
 import com.klavs.e_commerceapp.routes._Home
-import com.klavs.e_commerceapp.routes._Profile
+import com.klavs.e_commerceapp.routes._Menu
 import com.klavs.e_commerceapp.routes._Search
 import com.klavs.e_commerceapp.ui.theme.ECommerceAppTheme
-import com.klavs.e_commerceapp.util.Resource
-import com.klavs.e_commerceapp.viewmodel.GlobalViewModel
-import org.koin.androidx.compose.koinViewModel
 
 
 sealed class BottomBarItem(
@@ -51,25 +49,26 @@ sealed class BottomBarItem(
     data object ShoppingCart :
         BottomBarItem(_ShoppingCart, "Cart", Icons.Filled.ShoppingCart, Icons.Outlined.ShoppingCart)
 
-    data object Profile :
-        BottomBarItem(_Profile, "Profile", Icons.Filled.Person, Icons.Outlined.Person)
+    data object Menu :
+        BottomBarItem(_Menu, "Menu", Icons.Rounded.Menu, Icons.Rounded.Menu)
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun BottomBar(navController: NavHostController, globalViewModel: GlobalViewModel) {
+fun BottomNavigationBar(navController: NavHostController, cartSize: Int) {
     val items = listOf(
         BottomBarItem.Home,
         BottomBarItem.Search,
         BottomBarItem.ShoppingCart,
-        BottomBarItem.Profile
+        BottomBarItem.Menu
     )
-    val cartResource by globalViewModel.cart.collectAsStateWithLifecycle()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
-    NavigationBar {
+    ShortNavigationBar{
         items.forEach { item ->
             val selected = navBackStackEntry?.destination?.hasRoute(item.route::class) == true
-            NavigationBarItem(
+            ShortNavigationBarItem(
+                iconPosition = NavigationItemIconPosition.Start,
                 selected = selected,
                 onClick = {
                     navController.navigate(item.route) {
@@ -81,13 +80,12 @@ fun BottomBar(navController: NavHostController, globalViewModel: GlobalViewModel
                     }
                 },
                 icon = {
-                    if (cartResource is Resource.Success && item.route == _ShoppingCart) {
+                    if (item.route == _ShoppingCart) {
                         BadgedBox(
                             badge = {
-                                val count = (cartResource as Resource.Success<Cart>).data.cartItems.size
-                                if (count != 0) {
+                                if (cartSize != 0) {
                                     Badge {
-                                        Text(count.toString())
+                                        Text(cartSize.toString())
                                     }
                                 }
                             }) {
@@ -103,7 +101,7 @@ fun BottomBar(navController: NavHostController, globalViewModel: GlobalViewModel
                         )
                     }
                 },
-                label = { Text(item.title) }
+                label = null//{ Text(item.title) }
             )
         }
     }
@@ -114,9 +112,9 @@ fun BottomBar(navController: NavHostController, globalViewModel: GlobalViewModel
 private fun BottomBarPreview() {
     ECommerceAppTheme {
         Scaffold(bottomBar = {
-            BottomBar(
+            BottomNavigationBar(
                 rememberNavController(),
-                globalViewModel = koinViewModel()
+                cartSize = 1,
             )
         }) {
             Box(Modifier.padding(it))

@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 data class Cart(
     val cartId: Int,
     val cartItems: List<CartItem> = emptyList(),
-    val customerId: String
+    val customerId: String,
+    val deliveryFee: Double = 49.90,
 )
