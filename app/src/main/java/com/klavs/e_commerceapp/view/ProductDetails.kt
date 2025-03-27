@@ -1,5 +1,6 @@
 package com.klavs.e_commerceapp.view
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,17 +23,12 @@ import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material.icons.rounded.Share
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FlexibleBottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -53,8 +49,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastAny
-import androidx.compose.ui.util.fastFirst
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -71,7 +65,6 @@ import com.klavs.e_commerceapp.ui.theme.ECommerceAppTheme
 import com.klavs.e_commerceapp.util.Resource
 import com.klavs.e_commerceapp.viewmodel.GlobalViewModel
 import com.klavs.e_commerceapp.viewmodel.ProductViewModel
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun ProductDetails(
@@ -187,6 +180,9 @@ private fun ProductDetailsContent(
                                         .build(),
                                     contentDescription = product.name,
                                     modifier = Modifier.matchParentSize(),
+                                    onError = {
+                                        Log.e("coil error", it.result.throwable.message?:"")
+                                    },
                                     contentScale = ContentScale.Fit,
                                     error = {
                                         Icon(

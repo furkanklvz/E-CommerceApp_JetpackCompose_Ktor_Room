@@ -1,6 +1,7 @@
 package com.klavs.e_commerceapp.helper
 
 import android.util.Log
+import com.klavs.e_commerceapp.data.model.response.ProblemDetails
 import com.klavs.e_commerceapp.util.Resource
 import io.ktor.client.call.body
 import io.ktor.client.statement.HttpResponse
@@ -21,7 +22,7 @@ suspend inline fun <reified T> parseTheResponse(response: HttpResponse): Resourc
         } else if (response.status == HttpStatusCode.Unauthorized) {
             Resource.Unauthorized
         } else {
-            Resource.Error(Exception(response.body<String>()))
+            Resource.Error(Exception(response.body<ProblemDetails>().title))
         }
     } catch (e: Exception) {
         e.printStackTrace()
