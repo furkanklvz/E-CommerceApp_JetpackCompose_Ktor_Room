@@ -93,7 +93,10 @@ fun Orders(
     val ordersResource by orderViewModel.ordersResource.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-         orderViewModel.getOrders(0, 1)
+         orderViewModel.getOrders(
+             firstItemIndex = 0,
+             pageSize = 2
+         )
     }
 
     OrdersContent(
@@ -174,7 +177,7 @@ private fun OrdersContent(
                 .padding(top = innerPadding.calculateTopPadding())
         ) {
             if (orders.isEmpty()) {
-                if (ordersResource.isLoading() || updatingListJob?.isCompleted != true) {
+                if (ordersResource.isLoading() /*|| updatingListJob?.isActive == true*/) {
                     LinearProgressIndicator(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -207,6 +210,10 @@ private fun OrdersContent(
                         }) {
                             Text("Start Shopping Now")
                         }
+                    }
+                } else {
+                    LaunchedEffect(Unit) {
+                        Log.e("orders", "$ordersResource")
                     }
                 }
             } else {

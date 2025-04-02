@@ -1,5 +1,6 @@
 package com.klavs.e_commerceapp.data.datasource.order
 
+import android.util.Log
 import com.klavs.e_commerceapp.api.OrderService
 import com.klavs.e_commerceapp.data.model.request.CreateOrderRequest
 import com.klavs.e_commerceapp.data.model.response.OrderResponse
@@ -11,7 +12,11 @@ import javax.inject.Inject
 class OrderDatasourceImpl @Inject constructor (private val orderService: OrderService) : OrderDatasource {
     override suspend fun getOrders(firstItemIndex: Int, pageSize: Int): Resource<PagedData<OrderResponse>> {
         return try {
-            val response = orderService.getOrders(firstItemIndex, pageSize)
+            val response = orderService.getOrders(
+                pageSize = pageSize,
+                firstItemIndex = firstItemIndex
+            )
+            Log.e("response", response.toString())
             parseTheResponse<PagedData<OrderResponse>>(response)
         }catch (e:Exception){
             Resource.Error(e)

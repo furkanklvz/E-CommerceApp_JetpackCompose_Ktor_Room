@@ -1,18 +1,22 @@
 package com.klavs.e_commerceapp.di
 
+import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.klavs.e_commerceapp.api.AuthInterceptor
 import com.klavs.e_commerceapp.api.CartService
 import com.klavs.e_commerceapp.api.OrderService
 import com.klavs.e_commerceapp.api.ProductService
 import com.klavs.e_commerceapp.api.UserService
 import com.klavs.e_commerceapp.data.datastore.AppPref
+import com.klavs.e_commerceapp.data.room.AccountDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
 @Module
@@ -23,14 +27,19 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideAuthInterceptor(appPref: AppPref): AuthInterceptor {
-        return AuthInterceptor(appPref)
+    fun provideAuthInterceptor(appPref: AppPref, accountDao: AccountDao): AuthInterceptor {
+        return AuthInterceptor(appPref, accountDao)
     }
 
     @Provides
     @Singleton
     fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY // İstek ve yanıt detaylarını loglar
+        }
+
         return OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
             .addInterceptor(authInterceptor)
             .build()
     }
@@ -41,7 +50,7 @@ object NetworkModule {
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
             .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
             .build()
     }
 

@@ -1,6 +1,7 @@
 package com.klavs.e_commerceapp.api
 
 import com.klavs.e_commerceapp.data.datastore.AppPref
+import com.klavs.e_commerceapp.data.room.AccountDao
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -8,14 +9,17 @@ import okhttp3.Interceptor
 import okhttp3.Response
 import javax.inject.Inject
 
-class AuthInterceptor @Inject constructor(private val appPref: AppPref) : Interceptor {
+class AuthInterceptor @Inject constructor(private val appPref: AppPref, private val accountDao: AccountDao) : Interceptor {
 
     var token: String? = null
 
     init {
         CoroutineScope(Dispatchers.IO).launch{
-            appPref.getToken().collect {
-                token = it[AppPref.TOKEN]
+            /*appPref.token.collect {
+                token = it
+            }*/
+            accountDao.getAccountFlow().collect {
+                token = it?.token
             }
         }
     }

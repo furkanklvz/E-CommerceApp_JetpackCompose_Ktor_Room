@@ -21,7 +21,7 @@ class CartDatasourceImpl @Inject constructor(private val cartService: CartServic
         quantity: Int
     ): Resource<Cart> {
         return try {
-            val response = cartService.getCart()
+            val response = cartService.addToCart(productId, quantity)
             return parseTheResponse<Cart>(response)
         }catch (e: Exception){
             Resource.Error(e)
@@ -33,7 +33,7 @@ class CartDatasourceImpl @Inject constructor(private val cartService: CartServic
         quantity: Int
     ): Resource<Cart> {
         return try {
-            val response = cartService.getCart()
+            val response = cartService.deleteCartItem(productId, quantity)
             return parseTheResponse<Cart>(response)
         }catch (e: Exception){
             Resource.Error(e)
