@@ -6,10 +6,8 @@ import com.klavs.e_commerceapp.data.model.entity.Product
 import com.klavs.e_commerceapp.data.repository.product.ProductRepository
 import com.klavs.e_commerceapp.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 

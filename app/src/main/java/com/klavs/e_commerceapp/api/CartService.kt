@@ -1,6 +1,5 @@
 package com.klavs.e_commerceapp.api
 
-import com.klavs.e_commerceapp.data.model.entity.Cart
 import okhttp3.Response
 import retrofit2.http.DELETE
 import retrofit2.http.GET

@@ -239,7 +239,7 @@ private fun ProductDetailsContent(
                                         onClick = {
                                             remove(
                                                 product.productId,
-                                                cart!!.cartItems.find { it.productId == product.productId }?.quantity?:0
+                                                cart.cartItems.find { it.productId == product.productId }?.quantity?:0
                                             )
                                         },
                                         modifier = Modifier.size(IconButtonDefaults.xSmallContainerSize())
@@ -269,7 +269,7 @@ private fun ProductDetailsContent(
                                         }
                                         Text(
                                             "${
-                                                cart!!.cartItems.find {
+                                                cart.cartItems.find {
                                                     it.productId == product.productId
                                                 }?.quantity?:"err"
                                             }",

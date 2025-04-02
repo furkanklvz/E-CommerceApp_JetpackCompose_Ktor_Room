@@ -1,7 +1,6 @@
 package com.klavs.e_commerceapp.di
 
 import android.content.Context
-import androidx.room.RoomDatabase
 import com.klavs.e_commerceapp.api.CartService
 import com.klavs.e_commerceapp.api.OrderService
 import com.klavs.e_commerceapp.api.ProductService
