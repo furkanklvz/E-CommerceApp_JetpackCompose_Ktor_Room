@@ -1,67 +1,19 @@
 package com.klavs.e_commerceapp.api
 
 import com.klavs.e_commerceapp.data.model.request.CreateOrderRequest
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.timeout
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.request.headers
-import io.ktor.client.request.parameter
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.URLProtocol
-import io.ktor.http.path
+import okhttp3.Response
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.POST
 
-class OrderService(private val client: HttpClient) {
-    private val baseUrl = "10.0.2.2"
-    suspend fun getOrders(token: String, firstItemIndex: Int, pageSize: Int): HttpResponse {
-        val response = client.get {
-            url {
-                protocol = URLProtocol.HTTP
-                host = baseUrl
-                port = 5077
-                path("api", "order")
-                parameter("pageSize", pageSize)
-                parameter("firstItemIndex", firstItemIndex)
-            }
-            header("Authorization", "Bearer $token")
-            timeout {
-                requestTimeoutMillis = 15000
-            }
-        }
-        return response
-    }
+interface OrderService {
+    @GET("api/order")
+    suspend fun getOrders(firstItemIndex: Int, pageSize: Int): Response
 
-    suspend fun getOrder(orderId: Int, token: String): HttpResponse {
-        val response = client.get {
-            url {
-                protocol = URLProtocol.HTTP
-                host = baseUrl
-                port = 5077
-                path("api", "order", "$orderId")
-            }
-            header("Authorization", "Bearer $token")
-            timeout {
-                requestTimeoutMillis = 15000
-            }
-        }
-        return response
-    }
-    suspend fun createOrder(request: CreateOrderRequest, token: String): HttpResponse {
-        val response = client.post {
-            url {
-                protocol = URLProtocol.HTTP
-                host = baseUrl
-                port = 5077
-                path("api", "order")
-            }
-            headers {
-                append("Authorization", "Bearer $token")
-                append("Content-Type", "application/json")
-            }
-            setBody(request)
-        }
-        return response
-    }
+    @GET("api/order")
+    suspend fun getOrder(orderId: Int): Response
+
+    @POST("api/order")
+    suspend fun createOrder(@Body request: CreateOrderRequest): Response
+
 }

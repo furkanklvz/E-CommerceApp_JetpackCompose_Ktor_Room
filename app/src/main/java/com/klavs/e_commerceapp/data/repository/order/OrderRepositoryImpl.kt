@@ -4,14 +4,15 @@ import com.klavs.e_commerceapp.data.datasource.order.OrderDatasource
 import com.klavs.e_commerceapp.data.model.request.CreateOrderRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class OrderRepositoryImpl(private val ds: OrderDatasource) : OrderRepository {
-    override suspend fun getOrders(token: String, firstItemIndex: Int, pageSize: Int)
-    = withContext(Dispatchers.IO) { ds.getOrders(token, firstItemIndex, pageSize) }
+class OrderRepositoryImpl @Inject constructor(private val ds: OrderDatasource) : OrderRepository {
+    override suspend fun getOrders(firstItemIndex: Int, pageSize: Int)
+    = withContext(Dispatchers.IO) { ds.getOrders(firstItemIndex, pageSize) }
 
-    override suspend fun getOrder(orderId: Int, token: String)
-    = withContext(Dispatchers.IO) { ds.getOrder(orderId, token) }
+    override suspend fun getOrder(orderId: Int)
+    = withContext(Dispatchers.IO) { ds.getOrder(orderId) }
 
-    override suspend fun createOrder(request: CreateOrderRequest, token: String)
-    = withContext(Dispatchers.IO) { ds.createOrder(request, token) }
+    override suspend fun createOrder(request: CreateOrderRequest)
+    = withContext(Dispatchers.IO) { ds.createOrder(request) }
 }

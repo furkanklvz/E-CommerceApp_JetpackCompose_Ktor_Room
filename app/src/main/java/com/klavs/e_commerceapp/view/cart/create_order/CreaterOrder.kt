@@ -33,6 +33,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -77,7 +79,7 @@ fun CreateOrder(
 
     CreateOrderContent(
         orderResource = orderResource,
-        createOrder = { cartViewModel.createOrder(it, account.token) },
+        createOrder = { cartViewModel.createOrder(it) },
         navController = navController,
         cart = cart,
         reloadCart = { globalViewModel.getCart() },

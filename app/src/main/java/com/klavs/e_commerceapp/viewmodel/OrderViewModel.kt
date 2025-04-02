@@ -7,20 +7,23 @@ import com.klavs.e_commerceapp.data.model.response.OrderResponse
 import com.klavs.e_commerceapp.data.model.response.PagedData
 import com.klavs.e_commerceapp.data.repository.order.OrderRepository
 import com.klavs.e_commerceapp.util.Resource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class OrderViewModel (private val orderRepo: OrderRepository): ViewModel() {
+@HiltViewModel
+class OrderViewModel @Inject constructor (private val orderRepo: OrderRepository): ViewModel() {
 
 
     private val _ordersResource= MutableStateFlow<Resource<PagedData<OrderResponse>>>(Resource.Loading)
     val ordersResource = _ordersResource.asStateFlow()
 
-    fun getOrders(token: String, firstItemIndex: Int, pageSize: Int) {
+    fun getOrders(firstItemIndex: Int, pageSize: Int) {
         viewModelScope.launch(Dispatchers.Main) {
-            _ordersResource.value = orderRepo.getOrders(token, firstItemIndex, pageSize)
+            _ordersResource.value = orderRepo.getOrders(firstItemIndex, pageSize)
         }
     }
 

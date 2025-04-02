@@ -7,12 +7,18 @@ import com.klavs.e_commerceapp.data.model.entity.Account
 import com.klavs.e_commerceapp.data.repository.cart.CartRepository
 import com.klavs.e_commerceapp.data.room.AccountDao
 import com.klavs.e_commerceapp.util.Resource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import okhttp3.internal.wait
+import javax.inject.Inject
 
-class GlobalViewModel(
+@HiltViewModel
+class GlobalViewModel @Inject constructor(
     private val cartRepo: CartRepository,
     private val accountDao: AccountDao
 ) : ViewModel() {
@@ -53,20 +59,19 @@ class GlobalViewModel(
 
     fun getCart() {
         viewModelScope.launch(Dispatchers.Main) {
-            _account.value?.let {
-                _cart.value = cartRepo.getCart(it.token).also { resource->
+                _cart.value = cartRepo.getCart().also { resource->
                     if (resource.isUnauthorized()){
                         logout()
                     }
                 }
-            }
+
         }
     }
 
     fun addToCart(productId: Int, quantity: Int = 1) {
         viewModelScope.launch(Dispatchers.Main) {
             _account.value?.let {
-                _cart.value = cartRepo.addToCart(it.token, productId, quantity)
+                _cart.value = cartRepo.addToCart(productId, quantity)
             }
         }
     }
@@ -74,7 +79,7 @@ class GlobalViewModel(
     fun deleteCartItem(productId: Int, quantity: Int = 1) {
         viewModelScope.launch(Dispatchers.Main) {
             _account.value?.let {
-                _cart.value = cartRepo.deleteCartItem(it.token, productId, quantity)
+                _cart.value = cartRepo.deleteCartItem(productId, quantity)
             }
         }
     }

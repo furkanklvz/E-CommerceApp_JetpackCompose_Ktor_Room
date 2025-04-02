@@ -7,8 +7,9 @@ import com.klavs.e_commerceapp.data.model.response.LogInResponse
 import com.klavs.e_commerceapp.util.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class UserRepositoryImpl(private val ds: UserDatasource) : UserRepository {
+class UserRepositoryImpl @Inject constructor(private val ds: UserDatasource) : UserRepository {
     override suspend fun logIn(request: LogInRequest) =
         withContext(Dispatchers.IO) { ds.logIn(request) }
 

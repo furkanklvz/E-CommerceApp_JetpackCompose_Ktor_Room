@@ -6,7 +6,7 @@ import com.klavs.e_commerceapp.data.model.response.PagedData
 import com.klavs.e_commerceapp.util.Resource
 
 interface OrderRepository {
-    suspend fun getOrders(token: String, firstItemIndex: Int, pageSize: Int): Resource<PagedData<OrderResponse>>
-    suspend fun getOrder(orderId: Int, token: String): Resource<OrderResponse>
-    suspend fun createOrder(request: CreateOrderRequest, token: String): Resource<OrderResponse>
+    suspend fun getOrders(firstItemIndex: Int, pageSize: Int): Resource<PagedData<OrderResponse>>
+    suspend fun getOrder(orderId: Int): Resource<OrderResponse>
+    suspend fun createOrder(request: CreateOrderRequest): Resource<OrderResponse>
 }

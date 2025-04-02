@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
@@ -61,9 +62,10 @@ import com.klavs.e_commerceapp.viewmodel.HomeViewModel
 import com.klavs.e_commerceapp.viewmodel.OrderViewModel
 import com.klavs.e_commerceapp.viewmodel.ProductViewModel
 import com.klavs.e_commerceapp.viewmodel.UserViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.json.Json
-import org.koin.androidx.compose.koinViewModel
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,7 +79,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Navigation(globalViewModel: GlobalViewModel = koinViewModel()) {
+fun Navigation(globalViewModel: GlobalViewModel = hiltViewModel()) {
     val navController = rememberNavController()
     var bottomBarIsVisible by remember { mutableStateOf(true) }
     val account by globalViewModel.account.collectAsStateWithLifecycle()
@@ -124,7 +126,6 @@ fun Navigation(globalViewModel: GlobalViewModel = koinViewModel()) {
             navigation<ShoppingCartTop>(startDestination = _ShoppingCart) {
                 composable<_ShoppingCart> { backStackEntry ->
                     LaunchedEffect(Unit) { bottomBarIsVisible = true }
-                    val cartViewModel = backStackEntry.sharedViewModel<CartViewModel>(navController)
                     ShoppingCart(globalViewModel = globalViewModel, navController = navController)
                 }
             }
@@ -140,8 +141,7 @@ fun Navigation(globalViewModel: GlobalViewModel = koinViewModel()) {
                 val viewModel = backStackEntry.sharedViewModel<OrderViewModel>(navController)
                 Orders(
                     navController = navController,
-                    orderViewModel = viewModel,
-                    token = account?.token
+                    orderViewModel = viewModel
                 )
             }
 
@@ -150,7 +150,7 @@ fun Navigation(globalViewModel: GlobalViewModel = koinViewModel()) {
             composable<ProductDetails> { backStackEntry ->
                 LaunchedEffect(Unit) { bottomBarIsVisible = false }
                 val productDetails = backStackEntry.toRoute<ProductDetails>()
-                val viewModel = koinViewModel<ProductViewModel>()
+                val viewModel = hiltViewModel<ProductViewModel>()
                 ProductDetails(
                     id = productDetails.id,
                     globalViewModel = globalViewModel,
@@ -203,12 +203,12 @@ fun Navigation(globalViewModel: GlobalViewModel = koinViewModel()) {
 }
 
 @Composable
-private inline fun <reified T : ViewModel> NavBackStackEntry.sharedViewModel(navController: NavHostController): T {
-    val route = destination.parent?.route ?: return koinViewModel()
+private inline fun < reified T : ViewModel> NavBackStackEntry.sharedViewModel(navController: NavHostController): T {
+    val route = destination.parent?.route ?: return hiltViewModel()
     val backStackEntry = remember(this) {
         navController.getBackStackEntry(route)
     }
-    return koinViewModel(viewModelStoreOwner = backStackEntry)
+    return hiltViewModel(viewModelStoreOwner = backStackEntry)
 }
 
 @Preview(showBackground = true)

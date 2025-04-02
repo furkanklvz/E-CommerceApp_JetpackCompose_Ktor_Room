@@ -2,46 +2,16 @@ package com.klavs.e_commerceapp.api
 
 import com.klavs.e_commerceapp.data.model.request.LogInRequest
 import com.klavs.e_commerceapp.data.model.request.RegisterRequest
-import io.ktor.client.HttpClient
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.HttpResponse
-import io.ktor.http.ContentType
-import io.ktor.http.URLProtocol
-import io.ktor.http.contentType
-import io.ktor.http.path
+import okhttp3.Response
+import retrofit2.http.Body
+import retrofit2.http.POST
 
-class UserService (private val client: HttpClient) {
-    private val baseUrl = "10.0.2.2"
+interface UserService {
 
-    suspend fun logIn(request: LogInRequest): HttpResponse
-    {
-        val response = client.post {
-            url {
-                protocol = URLProtocol.HTTP
-                host = baseUrl
-                port = 5077
-                path("api", "account", "login")
-            }
-            contentType(ContentType.Application.Json)
-            setBody(body = request)
-        }
-        return response
-    }
+    @POST("api/account/login")
+    suspend fun logIn(@Body request: LogInRequest): Response
 
-    suspend fun register(request: RegisterRequest): HttpResponse
-    {
-        val response = client.post {
-            url {
-                protocol = URLProtocol.HTTP
-                host = baseUrl
-                port = 5077
-                path("api", "account", "register")
-            }
-            contentType(ContentType.Application.Json)
-            setBody(body = request)
-        }
-        return response
-    }
+    @POST("api/account/register")
+    suspend fun register(@Body request: RegisterRequest): Response
 
 }

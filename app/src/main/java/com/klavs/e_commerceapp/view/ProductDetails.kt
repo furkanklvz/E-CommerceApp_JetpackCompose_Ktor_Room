@@ -66,6 +66,7 @@ import com.klavs.e_commerceapp.util.Resource
 import com.klavs.e_commerceapp.viewmodel.GlobalViewModel
 import com.klavs.e_commerceapp.viewmodel.ProductViewModel
 
+
 @Composable
 fun ProductDetails(
     id: Int,

@@ -88,26 +88,23 @@ import kotlinx.datetime.LocalDateTime
 @Composable
 fun Orders(
     navController: NavHostController,
-    orderViewModel: OrderViewModel,
-    token: String?
+    orderViewModel: OrderViewModel
 ) {
     val ordersResource by orderViewModel.ordersResource.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        token?.let { orderViewModel.getOrders(token, 0, 1) }
+         orderViewModel.getOrders(0, 1)
     }
 
     OrdersContent(
         ordersResource = ordersResource,
         navController = navController,
         getOrders = { firstItemIndex, pageSize ->
-            token?.let {
                 orderViewModel.getOrders(
-                    token = token,
                     firstItemIndex = firstItemIndex,
                     pageSize = pageSize
                 )
-            }
+
         }
     )
 }

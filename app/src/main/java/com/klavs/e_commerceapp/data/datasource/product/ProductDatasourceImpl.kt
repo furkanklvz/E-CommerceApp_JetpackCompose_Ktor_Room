@@ -4,8 +4,9 @@ import com.klavs.e_commerceapp.api.ProductService
 import com.klavs.e_commerceapp.data.model.entity.Product
 import com.klavs.e_commerceapp.helper.parseTheResponse
 import com.klavs.e_commerceapp.util.Resource
+import javax.inject.Inject
 
-class ProductDatasourceImpl(private val service: ProductService) : ProductDatasource {
+class ProductDatasourceImpl @Inject constructor(private val service: ProductService) : ProductDatasource {
     override suspend fun getProducts(): Resource<List<Product>> {
         return try {
             val response = service.getProducts()

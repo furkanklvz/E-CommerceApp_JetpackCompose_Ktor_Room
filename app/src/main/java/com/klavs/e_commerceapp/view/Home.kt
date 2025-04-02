@@ -258,7 +258,7 @@ private fun ProductCard(product: Product, onProductClick: () -> Unit, addToCart:
 
                             Icon(
                                 imageVector = Icons.Rounded.AddShoppingCart,
-                                contentDescription = "add to tcart",
+                                contentDescription = "add to cart",
                                 modifier = Modifier.size(IconButtonDefaults.xSmallIconSize)
                             )
                         }

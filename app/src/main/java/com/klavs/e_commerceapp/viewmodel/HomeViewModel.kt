@@ -5,12 +5,16 @@ import androidx.lifecycle.viewModelScope
 import com.klavs.e_commerceapp.data.model.entity.Product
 import com.klavs.e_commerceapp.data.repository.product.ProductRepository
 import com.klavs.e_commerceapp.util.Resource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class HomeViewModel (private val productRepo: ProductRepository): ViewModel() {
+@HiltViewModel
+class HomeViewModel @Inject constructor (private val productRepo: ProductRepository): ViewModel() {
     private val _products = MutableStateFlow<Resource<List<Product>>>(Resource.Loading)
     val products = _products.asStateFlow()
 
@@ -20,7 +24,7 @@ class HomeViewModel (private val productRepo: ProductRepository): ViewModel() {
     }
 
     private fun getProducts(){
-        viewModelScope.launch(Dispatchers.Main) {
+        viewModelScope.launch {
             _products.value = productRepo.getProducts()
         }
     }

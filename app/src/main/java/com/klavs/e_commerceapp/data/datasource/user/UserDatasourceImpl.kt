@@ -8,8 +8,9 @@ import com.klavs.e_commerceapp.data.model.response.LogInResponse
 import com.klavs.e_commerceapp.data.room.AccountDao
 import com.klavs.e_commerceapp.helper.parseTheResponse
 import com.klavs.e_commerceapp.util.Resource
+import javax.inject.Inject
 
-class UserDatasourceImpl(
+class UserDatasourceImpl @Inject constructor(
     private val userService: UserService,
     private val accountDao: AccountDao
 ) : UserDatasource {
